@@ -1,0 +1,10 @@
+{
+  "type": "module",
+  "name": "ghost-split",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "audio-splitter": "^1.1.1"
+  }
+}
