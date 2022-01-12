@@ -1,23 +1,37 @@
 import ffmpeg from 'fluent-ffmpeg'
 
-let slicesToBeMade = 100
+let slicesToBeMade = 10e3
 let slicesMade = 1
 
-async function makeSlice(
+export async function makeSlice(
+	session: number,
+	computer: number,
 	filePath: string,
+	outputDir: string,
 	start: number,
 	end: number,
 	index: number,
 ) {
+	// const inputOptions = {
+	// 	session,
+	// 	computer,
+	// 	filePath,
+	// 	outputDir,
+	// 	start,
+	// 	end,
+	// 	index,
+	// }
+	// console.log(inputOptions)
 	const filePathWithoutExtension = filePath.replace(/\..*$/, '')
-	const fileExtension = filePath.replace(/.*\.(.*$)/, '$1')
+	const fileExtension = 'mp3'
+	// filePath.replace(/.*\.(.*$)/, '$1')
 
-	const outputTrack = `${filePathWithoutExtension}-${
+	const outputTrack = `${outputDir}/computer-${computer} session-${session} ghost-${
 		index + 1
 	}.${fileExtension}`
+
 	start = start / 1000
 	const length = end / 1000 - start
-	console.log('start: ' + start, 'end: ' + end, ' length: ' + length)
 
 	await new Promise((resolve, reject) => {
 		let ffmpegCommand = ffmpeg()
@@ -28,7 +42,8 @@ async function makeSlice(
 			.noVideo()
 
 		ffmpegCommand
-			.outputOptions('-c:a', 'copy')
+			.outputOptions('-b:a', '320k') // existing
+			// .outputOptions('-c:a', 'copy') // ? existing
 			.on('start', (cmdline) => {
 				// console.log(cmdline) // ? Enable for logging
 			})
@@ -43,6 +58,8 @@ async function makeSlice(
 export async function splitSession(
 	sliceMap: number[][],
 	filePath: string,
+	outputDir: string,
+	computerNumber: number,
 	sessionNumber: number,
 ) {
 	console.log('Splitting session', sessionNumber, '\n\t@', filePath + '...')
@@ -52,7 +69,15 @@ export async function splitSession(
 		const prevEndTime = arr[i - 1] || 0
 		const startTime = prevEndTime
 		const endTime = slice
-		return makeSlice(filePath, startTime, endTime, i)
+		return makeSlice(
+			sessionNumber,
+			computerNumber,
+			filePath,
+			outputDir,
+			startTime,
+			endTime,
+			i,
+		)
 	})
 	await Promise.all(slicePromises)
 	console.log('')

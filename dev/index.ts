@@ -1,37 +1,73 @@
+import { makeSlice, splitSession } from './splitSession'
+
+import fs from 'fs'
 import { makeSliceMap } from './makeSliceMap'
-import { splitSession } from './splitSession'
 
 async function splitAllSessions(
 	pathToMasterFolder: string,
 	sliceMap: number[][],
 ) {
-	for (let computer = 1; computer < 11; computer++) {
-		for (let session = 1; session < 11; session++) {
-			// /Users/matt/Downloads/GOFD ALL SESSIONS/COMPUTER 1/GOFD 100 MASTER SESSION DONE.als
-			// const dirPath = `GOFD ${}`
-			const filePath =
-				pathToMasterFolder + `COMPUTER ${computer} - SESSION ${session}.wav`
+	const arrayOfTen = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+	for (const computer of arrayOfTen) {
+		const pathToComputerDir = pathToMasterFolder + `/COMPUTER ${computer}`
+		console.log(pathToComputerDir)
+		const sessionFilesForComputer = fs
+			.readdirSync(pathToComputerDir)
+			.filter((fileName) => !fileName.startsWith('.'))
 
-			const slicesForSession = sliceMap[session]
+		const sessionFiles: { [key: number]: string } = {}
 
-			// splitSession(sliceMap, )
+		sessionFilesForComputer.forEach((sessionFile: string) => {
+			const sessionNumberMatches = /^[^[\n]*([1-9]0?)00/.exec(sessionFile)
+
+			if (sessionNumberMatches) {
+				const sessionNumber: number = Number(sessionNumberMatches[1])
+				sessionFiles[sessionNumber] = sessionFile
+			}
+		})
+
+		for (const session of arrayOfTen) {
+			const sessionFileName = sessionFiles[session]
+			const pathToSessionFile = pathToComputerDir + '/' + sessionFileName
+			const outputDir = pathToMasterFolder + '/SLICES'
+			await splitSession(
+				sliceMap,
+				pathToSessionFile,
+				outputDir,
+				computer,
+				session,
+			)
 		}
 	}
 }
 
-async function splitSingleSession(filePath: string, sliceMap: number[][]) {
-	await splitSession(sliceMap, filePath, 3)
-}
+// async function splitSingleSession(filePath: string, sliceMap: number[][]) {
+// 	await splitSession(sliceMap, filePath, 3)
+// }
 
 ;(async () => {
 	const sliceMap = await makeSliceMap()
 
-	const pathToMasterFolder = process.argv[2]
+	const pathToMasterFolder =
+		'/Volumes/T7/GOFD BOUNCED AUDIO (Pitch Error at the end)'
 	const pathToSingleSession =
 		'/Users/matt/Downloads/TEST/COMPUTER 2 - SESSION 3.wav'
 
-	// await splitAllSessions(pathToMasterFolder, sliceMap)
-	await splitSingleSession(pathToSingleSession, sliceMap)
+	await splitAllSessions(pathToMasterFolder, sliceMap)
+	// await splitSingleSession(pathToSingleSession, sliceMap)
+
+	// ! <TESTING>
+	// const session = 2
+	// const computer = 1
+	// const filePath =
+	// 	'/Volumes/T7/GOFD BOUNCED AUDIO (Pitch Error at the end)/COMPUTER 1/1GOFD 200 MASTER SESSION DONE.wav'
+	// const outputDir =
+	// 	'/Volumes/T7/GOFD BOUNCED AUDIO (Pitch Error at the end)/SLICES'
+	// const start = 2250764.7431567432
+	// const end = 2274615.674833762
+	// const index = 77
+	// await makeSlice(session, computer, filePath, outputDir, start, end, index)
+	// ! </TESTING>
 
 	console.log('🎉 Done! Audio for all sessions has been split.')
 })()
