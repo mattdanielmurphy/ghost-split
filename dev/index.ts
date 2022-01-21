@@ -41,10 +41,6 @@ async function splitAllSessions(
 	}
 }
 
-// async function splitSingleSession(filePath: string, sliceMap: number[][]) {
-// 	await splitSession(sliceMap, filePath, 3)
-// }
-
 ;(async () => {
 	const sliceMap = await makeSliceMap()
 
@@ -53,8 +49,7 @@ async function splitAllSessions(
 	const pathToSingleSession =
 		'/Users/matt/Downloads/TEST/COMPUTER 2 - SESSION 3.wav'
 
-	await splitAllSessions(pathToMasterFolder, sliceMap)
-	// await splitSingleSession(pathToSingleSession, sliceMap)
+	// await splitAllSessions(pathToMasterFolder, sliceMap)
 
 	// ! <TESTING>
 	// const session = 2
@@ -68,6 +63,10 @@ async function splitAllSessions(
 	// const index = 77
 	// await makeSlice(session, computer, filePath, outputDir, start, end, index)
 	// ! </TESTING>
+	const filePath = process.argv[1]
+	const outputDir = process.argv[2]
+
+	await splitSession(sliceMap, filePath, outputDir, 10, 1)
 
 	console.log('🎉 Done! Audio for all sessions has been split.')
 })()
